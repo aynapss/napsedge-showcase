@@ -1,5 +1,7 @@
 # NapsEdge: NCAA basketball analytics platform (engineering showcase)
 
+[![ci](https://github.com/aynapss/napsedge-showcase/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/aynapss/napsedge-showcase/actions/workflows/ci.yml)
+
 NapsEdge collects NCAA men's basketball data, models matchups and serves the results through an API, a Streamlit app and a Discord bot. This repository is a **curated, view-only excerpt** of the private project. It shows the production engineering. The modelling, projection and betting-analysis components are proprietary and are not included (see [What is not here](#what-is-not-here)).
 
 **Copyright (c) 2026 Anthony Napoli. All rights reserved.** Published for viewing only; see [NOTICE](NOTICE).
