@@ -1,0 +1,79 @@
+# Public demo: the real API and Streamlit images, built with the fictional demo data in demo/, against a throwaway
+# PostgreSQL 16. Everything is local and loopback-only.
+#
+#   docker compose -f compose.demo.yaml up --build --wait     then open http://localhost:8501 and http://localhost:8000/v1/docs
+#   docker compose -f compose.demo.yaml down -v               removes the containers and the demo database
+#
+# The demo credentials below are public on purpose (demo data only, nothing reachable from outside this machine):
+# API token `napsedge-demo-token`, database password `napsedge-demo-only`.
+
+x-demo-env: &demo-env
+  NAPSEDGE_DATABASE_URL: postgresql+psycopg://napsedge_demo:napsedge-demo-only@demo-db:5432/napsedge_demo
+  NAPSEDGE_NET_RANKINGS_SEASON: "2026"
+  NAPSEDGE_LOG_LEVEL: INFO
+
+services:
+  demo-db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: napsedge_demo
+      POSTGRES_USER: napsedge_demo
+      POSTGRES_PASSWORD: napsedge-demo-only
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U napsedge_demo -d napsedge_demo"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  # One-shot: apply the migrations, then load the demo teams, players and statistics.
+  demo-setup:
+    build:
+      context: .
+      target: api
+    image: napsedge-api:demo
+    entrypoint: ["sh", "-c", "python -m alembic upgrade head && python demo/seed_demo.py"]
+    environment:
+      <<: *demo-env
+      NAPSEDGE_DEMO: "1"
+      PYTHONPATH: /app
+    volumes:
+      - ./demo/seed_demo.py:/app/demo/seed_demo.py:ro
+    depends_on:
+      demo-db:
+        condition: service_healthy
+
+  api:
+    build:
+      context: .
+      target: api
+    image: napsedge-api:demo
+    ports:
+      - "127.0.0.1:8000:8000"
+    environment:
+      <<: *demo-env
+      NAPSEDGE_API_KEY_HASHES_JSON: '{"demo-client": "ea590f8b88e39a011b41a67f4b5d53732eadbf199a55ce69e1a8cf7472976105"}'
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/v1/ready', timeout=3)"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    depends_on:
+      demo-setup:
+        condition: service_completed_successfully
+
+  streamlit:
+    build:
+      context: .
+      target: streamlit
+    image: napsedge-streamlit:demo
+    ports:
+      - "127.0.0.1:8501:8501"
+    environment: *demo-env
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8501/_stcore/health', timeout=3)"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    depends_on:
+      demo-setup:
+        condition: service_completed_successfully

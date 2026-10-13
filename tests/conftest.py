@@ -14,7 +14,9 @@ _AUTO_MARK_DIRS = {"unit", "regression", "integration", "live", "slow", "postgre
 
 
 #: Public showcase: test cases that need the proprietary components or private data files omitted from this
-#: repository (listed by node ID, one per line). They run in the private repository.
+#: repository, plus two that pin the private image on purpose (its exact `COPY docs/...` line, and no local data
+#: directories, while the demo image carries a synthetic TeamDump/). Listed by node ID, one per line; they run in the
+#: private repository.
 _SHOWCASE_EXCLUDED = os.path.join(os.path.dirname(os.path.abspath(__file__)), "showcase_excluded.txt")
 
 

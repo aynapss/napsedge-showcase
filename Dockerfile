@@ -56,28 +56,16 @@ COPY app.py ./app.py
 COPY alembic/ ./alembic/
 COPY alembic.ini ./alembic.ini
 COPY .python-version ./.python-version
-# The one small (≈6 KB), tracked, non-secret data file
-# NAPSEDGE_NET_RANKINGS_CACHE_PATH defaults to -- not the surrounding
-# 33 MB "Reference Py Files" directory, which holds unrelated notebooks
-# and documents never needed at runtime.
-COPY ["Reference Py Files/net_rankings_2026.csv", "./Reference Py Files/net_rankings_2026.csv"]
-
-# The single notebook the runtime *reads as data* (never executes):
-# src.ingestion.load_data.load_conferences() does json.loads +
-# ast.literal_eval on its `conferences = {...}` cell to build the team
-# identity registry, which every team-resolving API route, Discord
-# command, and Streamlit page depends on. Without it every such request
-# fails with ConfigurationError (found by Phase 9A's own post-hoc
-# end-to-end test). No other notebook is copied.
-COPY cbb_teamScrape_v15_TEST.ipynb ./cbb_teamScrape_v15_TEST.ipynb
-
-# Second runtime data file, read by
-# src.identity.sr_slug_reconciliation (Path(__file__)-relative:
-# docs/sr_slug_reconciliation.json) on every NET-ranking identity
-# resolution. Without it the Rankings route returns 500
-# (FileNotFoundError) -- found by Phase 9A's own post-hoc end-to-end test.
-# No other file under docs/ is copied.
-COPY docs/sr_slug_reconciliation.json ./docs/sr_slug_reconciliation.json
+# Public showcase: the runtime's data inputs come from demo/ (fictional teams, synthetic values), copied to the exact paths the
+# unchanged application reads. The private repository copies the real files here instead.
+# - the NET rankings cache (NAPSEDGE_NET_RANKINGS_CACHE_PATH's default);
+COPY ["demo/net_rankings_demo.csv", "./Reference Py Files/net_rankings_2026.csv"]
+# - the team registry, read as data (never executed) from the notebook's `conferences = {...}` cell;
+COPY demo/cbb_teamScrape_v15_TEST.ipynb ./cbb_teamScrape_v15_TEST.ipynb
+# - the SR-slug reconciliation record (no disputes among the demo teams);
+COPY demo/docs/sr_slug_reconciliation.json ./docs/sr_slug_reconciliation.json
+# - per-team injury caches, so the injury route and page have data.
+COPY demo/TeamDump/ ./TeamDump/
 
 RUN chown -R napsedge:napsedge /app
 USER napsedge

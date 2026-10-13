@@ -38,6 +38,31 @@ NapsEdge collects NCAA men's basketball data, models matchups and serves the res
 | Database | SQLAlchemy models, repositories with idempotent upserts, Alembic migrations, least-privilege roles | [`src/db/`](src/db/), [`alembic/`](alembic/), [`docs/database_schema.md`](docs/database_schema.md) |
 | Readiness | A threat assessment, a dependency-ordered hardening roadmap and an evidence-based go/no-go record | [`docs/phase9_deployment_hardening_readiness.md`](docs/phase9_deployment_hardening_readiness.md), [`docs/phase9f_go_no_go.md`](docs/phase9f_go_no_go.md) |
 
+## Try the demo
+
+Runs the real API and Streamlit images against a throwaway PostgreSQL, filled with **fictional teams and synthetic statistics** from [`demo/`](demo/). Needs Docker; everything stays on your machine.
+
+```bash
+docker compose -f compose.demo.yaml up --build --wait
+python demo/smoke_demo.py          # 13 checks across every API route and Streamlit
+```
+
+- **Streamlit:** http://localhost:8501. Try *Team Lookup* with `Harbor State` (injury report, NET ranking), *Player Raw Statistics* with `team:783921:season:2026:key:harbor state demo player 1`, and *Matchup Feature Comparison* with any values.
+- **API docs:** http://localhost:8000/v1/docs. Authorize with the public demo token `napsedge-demo-token`:
+
+```bash
+curl -H "Authorization: Bearer napsedge-demo-token" "http://localhost:8000/v1/teams/resolve?query=Harbor%20State"
+curl -H "Authorization: Bearer napsedge-demo-token" "http://localhost:8000/v1/rankings/net"
+```
+
+Stop and remove everything with `docker compose -f compose.demo.yaml down -v`.
+
+| Injury report | Player statistics | Matchup comparison |
+|---|---|---|
+| ![Injury report](docs/screenshots/demo-injury-report.png) | ![Player statistics](docs/screenshots/demo-player-stats.png) | ![Matchup comparison](docs/screenshots/demo-matchup.png) |
+
+How it works: the application code is unchanged; the image copies the demo files to the paths the code already reads (a team registry, a rankings cache, per-team injury files), and a one-shot `demo-setup` service runs the migrations and [`demo/seed_demo.py`](demo/seed_demo.py). The demo token and database password are public on purpose and only work against this local demo.
+
 ## Tests
 
 ```bash
@@ -45,15 +70,15 @@ python -m pip install -c constraints-release-py313.txt -r requirements-dev.txt -
 python -m pytest -q
 ```
 
-The default suite is self-contained (no network, no database). The PostgreSQL and Redis suites (`-m postgres`, `-m redis`) start disposable containers through Docker. CI runs the default suite and a `pip-audit` dependency scan on every push.
+The default suite is self-contained (no network, no database). The PostgreSQL and Redis suites (`-m postgres`, `-m redis`) start disposable containers through Docker. CI runs the default suite, a `pip-audit` dependency scan, and the demo (build, boot, smoke test) on every push.
 
 ## What is not here
 
 These stay in the private repository:
 - the research notebooks;
-- matchup feature engineering, the projection model and market-edge evaluation ([`src/features/matchup_features.py`](src/features/matchup_features.py) is a labelled stand-in that raises `NotImplementedError`, so the matchup comparison endpoint returns an error here);
+- matchup feature engineering, the projection model and market-edge evaluation ([`src/features/matchup_features.py`](src/features/matchup_features.py) keeps only the descriptive comparison of user-supplied values; `build_matchup_features` raises `NotImplementedError`);
 - player ratings, simulation, staking, calibration and back-testing;
 - the LLM research agents and the legacy Discord commands;
 - raw data, caches and team logos.
 
-Because of this, the container images and the PostgreSQL suite are reading material here: they expect the private notebook and data files.
+The container images build here from the fictional demo data instead of the private files.
