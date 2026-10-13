@@ -1,0 +1,11 @@
+# Phase 9B-8B: hourly backup status check. INACTIVE until deployment.
+[Unit]
+Description=Hourly NapsEdge backup status check (Phase 9B-8B)
+
+[Timer]
+OnCalendar=hourly
+Persistent=true
+Unit=napsedge-backup-status.service
+
+[Install]
+WantedBy=timers.target

@@ -1,0 +1,27 @@
+# Phase 9B-8B: the missed/failed-backup check. Exit 10 = attention (no remotely verified copy within the RPO, repeated overlap
+# skips, a failed last cycle, an overdue drill) -> the OnFailure= hook. INACTIVE until deployment.
+[Unit]
+Description=NapsEdge backup status check (Phase 9B-8B)
+Requires=docker.service
+After=docker.service
+OnFailure=napsedge-backup-notify@%n.service
+
+[Service]
+Type=oneshot
+EnvironmentFile=/etc/napsedge-backup/unit.env
+TimeoutStartSec=10min
+RuntimeDirectory=napsedge-backup-status
+RuntimeDirectoryMode=0700
+# A READ/LIST-only store key (it lists the drill records); never the write or delete key.
+LoadCredentialEncrypted=offsite-key-id:/etc/credstore.encrypted/napsedge-backup-offsite-read-key-id
+LoadCredentialEncrypted=offsite-secret-key:/etc/credstore.encrypted/napsedge-backup-offsite-read-secret-key
+# Numeric owner via chown, never `install -o`: uutils coreutils (Ubuntu 26.04) refuses a numeric owner with no account
+# (found by the 9B-8C WSL rehearsal); chown accepts it on both GNU and uutils.
+ExecStartPre=/bin/sh -c 'set -e; mkdir -p /run/napsedge-backup-status/credentials; chmod 0700 /run/napsedge-backup-status/credentials; chown 10001:10001 /run/napsedge-backup-status/credentials'
+ExecStartPre=/bin/sh -c 'set -e; for c in offsite-key-id offsite-secret-key; do install -m 0400 "$CREDENTIALS_DIRECTORY/$c" "/run/napsedge-backup-status/credentials/$c"; chown 10001:10001 "/run/napsedge-backup-status/credentials/$c"; done'
+ExecStart=/usr/bin/docker run --rm --read-only --user 10001:10001 --cap-drop ALL --security-opt no-new-privileges --network bridge \
+  -v /run/napsedge-backup-status/credentials:/run/napsedge-backup/credentials:ro \
+  -v napsedge-backup-state:/var/lib/napsedge-backup/state:ro \
+  --env-file /etc/napsedge-backup/backup.env \
+  --entrypoint python napsedge-backup:${NAPSEDGE_BACKUP_IMAGE_TAG} -m src.deployment.entrypoints backup-status
+ExecStopPost=/bin/rm -rf /run/napsedge-backup-status/credentials

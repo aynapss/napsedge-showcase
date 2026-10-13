@@ -1,0 +1,41 @@
+# Phase 9B-8B: ONE backup cycle (capture with bounded overlap retries, then the encrypted off-site copy when enabled).
+# INACTIVE until deployment: install it, but do not enable the timer before the activation steps in
+# docs/backup_operations_runbook.md. Started by napsedge-backup.timer, or manually / after a controlled import:
+#   systemctl start napsedge-backup.service
+# systemd never starts a second instance while one is active (an elapsed timer leaves the running cycle alone).
+[Unit]
+Description=NapsEdge backup cycle (Phase 9B-8B)
+Wants=network-online.target
+After=network-online.target docker.service
+Requires=docker.service
+OnFailure=napsedge-backup-notify@%n.service
+
+[Service]
+Type=oneshot
+EnvironmentFile=/etc/napsedge-backup/unit.env
+# Exit 3 = every capture attempt overlapped another job's lock: NOT a failure (the status check counts consecutive skips).
+SuccessExitStatus=3
+# Outer bound, above the cycle's own deadline (NAPSEDGE_BACKUP_CYCLE_DEADLINE_SECONDS, default 2 h) plus the upload.
+TimeoutStartSec=3h
+RuntimeDirectory=napsedge-backup
+RuntimeDirectoryMode=0700
+# Credentials: systemd encrypted credentials (systemd-creds encrypt ...), never environment values.
+LoadCredentialEncrypted=db-password:/etc/credstore.encrypted/napsedge-backup-db-password
+LoadCredentialEncrypted=offsite-key-id:/etc/credstore.encrypted/napsedge-backup-offsite-key-id
+LoadCredentialEncrypted=offsite-secret-key:/etc/credstore.encrypted/napsedge-backup-offsite-secret-key
+# Staged for the non-root container (uid 10001) in this unit's private runtime directory (RAM), removed afterwards.
+# Numeric owner via chown, never `install -o`: uutils coreutils (Ubuntu 26.04) refuses a numeric owner with no account
+# (found by the 9B-8C WSL rehearsal); chown accepts it on both GNU and uutils.
+ExecStartPre=/bin/sh -c 'set -e; mkdir -p /run/napsedge-backup/credentials; chmod 0700 /run/napsedge-backup/credentials; chown 10001:10001 /run/napsedge-backup/credentials'
+ExecStartPre=/bin/sh -c 'set -e; for c in db-password offsite-key-id offsite-secret-key; do install -m 0400 "$CREDENTIALS_DIRECTORY/$c" "/run/napsedge-backup/credentials/$c"; chown 10001:10001 "/run/napsedge-backup/credentials/$c"; done'
+ExecStart=/usr/bin/docker run --rm --name napsedge-backup-cycle --read-only --user 10001:10001 --cap-drop ALL \
+  --security-opt no-new-privileges --network bridge --label org.napsedge.role=backup-cycle \
+  -v /run/napsedge-backup/credentials:/run/napsedge-backup/credentials:ro \
+  -v /etc/napsedge-backup/ca:/run/napsedge-backup/ca:ro \
+  -v /etc/napsedge-backup/recipients:/run/napsedge-backup/recipients:ro \
+  -v napsedge-backup-scratch:/var/lib/napsedge-backup/scratch \
+  -v napsedge-backup-store:/var/lib/napsedge-backup/store \
+  -v napsedge-backup-state:/var/lib/napsedge-backup/state \
+  --env-file /etc/napsedge-backup/backup.env \
+  --entrypoint python napsedge-backup:${NAPSEDGE_BACKUP_IMAGE_TAG} -m src.deployment.entrypoints backup-cycle
+ExecStopPost=/bin/rm -rf /run/napsedge-backup/credentials

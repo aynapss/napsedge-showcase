@@ -1,0 +1,9 @@
+# Phase 9B-8B: the failure-notification HOOK -- deliberately INACTIVE: it only writes one journal line. The delivery channel
+# (email, a Discord webhook, an external dead-man's switch) is an open decision; replace ExecStart only after choosing one, and
+# keep any webhook secret in a systemd credential, never in this file. Read the cause with: journalctl -u %i
+[Unit]
+Description=NapsEdge backup attention hook for %i (inactive: journal only)
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/logger -t napsedge-backup-notify "ATTENTION: %i did not succeed; see journalctl -u %i and the cycle record in the state volume"

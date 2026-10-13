@@ -1,0 +1,51 @@
+# Python
+.env
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+data/*.db
+logs/
+.pytest_cache/
+
+# Cache folders
+cache/
+sr_cache_html/
+TeamDump/
+covers_slug_cache.json
+
+# Bet tracker outputs only (not logos)
+bet_tracker/Active Bets/
+bet_tracker/bet_log.parquet
+bet_tracker/elo_ratings.json
+bet_tracker/pending.json
+
+# Generated data files
+*.parquet
+
+# Kaleido (Plotly image export) scratch files -- Phase 7 Slice 0B
+PlayerCards/_kaleido_tmp/
+
+# Virtual environments -- none exist today; excluded proactively (Phase 7 Slice 0B)
+.venv/
+venv/
+env/
+
+# IDE-local files -- none exist today; excluded proactively (Phase 7 Slice 0B)
+.vscode/
+.idea/
+
+# Streamlit's own local-secrets convention -- no such file exists today; excluded
+# proactively so one is never accidentally committed (Phase 7 Slice 0B)
+.streamlit/secrets.toml
+
+# Own separate, independently-tracked nested Git repository (a real
+# submodule was never configured for it) -- untracked here deliberately
+# so a future broad `git add` never re-recreates the accidental gitlink
+# removed in Phase 8A, Pass 2. Its own history/remote is unaffected by
+# this repository ignoring it.
+/NCAA-Player-Radars/
+
+# Phase 9 rehearsal environment files (e.g. .env.phase9.tunnel) hold
+# ephemeral per-rehearsal secrets; they must never be committed. The
+# committed template .env.example is deliberately NOT matched by this.
+.env.phase9.*

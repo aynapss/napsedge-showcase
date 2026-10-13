@@ -1,0 +1,16 @@
+-r requirements.txt
+pytest
+nbformat
+
+# Phase 5B7: disposable-PostgreSQL integration testing.
+# testcontainers provisions/tears down the ephemeral Docker container;
+# psycopg is the driver used to connect to it. psycopg is also now declared
+# in requirements.txt (Phase 7 Slice 0B correction) since a real deployment
+# needs it too -- kept here as well so `pip install -r requirements-dev.txt`
+# alone (without also installing requirements.txt first) still works.
+psycopg[binary]
+testcontainers[postgres]
+
+# Phase 6B: required by fastapi.testclient (wraps httpx.Client) -- test-only,
+# already present transitively via jupyterlab, declared explicitly here.
+httpx==0.28.1

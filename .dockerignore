@@ -1,0 +1,80 @@
+# Phase 9A: excludes everything not explicitly COPYed by Dockerfile.
+# This file governs only the Docker build context -- it does not change
+# this project's own .gitignore policy, and nothing here is removed
+# from Git tracking.
+
+# Version control
+.git/
+.github/
+
+# Secrets and local-only configuration -- never enters any build context.
+.env
+.env.*
+!.env.example
+.streamlit/secrets.toml
+
+# Local-only data/cache (already .gitignore'd, excluded here too as a
+# second, independent layer of defense against an accidental copy)
+TeamDump/
+cache/
+sr_cache_html/
+data/
+logs/
+covers_slug_cache.json
+*.parquet
+NCAA-Player-Radars/
+
+# Generated card/image artifacts -- not needed by any of the 3 runtime images
+PlayerCards/
+Conference_Ratings/
+Live Scoreboard/
+Images/
+
+# Notebooks -- not executed by, or required by, any accepted runtime process
+*.ipynb
+!cbb_teamScrape_v15_TEST.ipynb
+.ipynb_checkpoints/
+Reference Py Files/
+!Reference Py Files/net_rankings_2026.csv
+
+# Streamlit pages: allowlist semantics -- only the three accepted, tracked
+# pages (10-12) may enter an image. Pages 01-09 are untracked/deferred
+# (page 04 execs the notebook card engine, page 09 triggers the live
+# Odds/agent pipeline) and would otherwise ship from any dirty working tree.
+pages/0*.py
+pages/__pycache__/
+
+# Tests, docs, and scratch/unknown-provenance files
+tests/
+docs/*
+!docs/sr_slug_reconciliation.json
+*.txt
+!requirements.txt
+!requirements-dev.txt
+!requirements-backup.txt
+!constraints-release-py313.txt
+*.zip
+*.pdf
+_ncaa_playwright_helper.py
+napsedge_discord_bot.py
+
+# Virtual environments / caches
+.venv/
+venv/
+env/
+.pytest_cache/
+
+# Deferred/excluded source modules this Phase 9A scope never builds or runs
+# (left in the Git tree, simply never needed by any of the 3 images'
+# own COPY list above -- excluding them here is defense in depth, not
+# a correctness requirement, since the Dockerfile never COPYs the
+# repository root wholesale).
+
+# Host-generated Python bytecode, at EVERY depth (Phase 9B-7A follow-up). A bare `__pycache__/` or `*.pyc` matches only
+# at the context root, so nested caches from the build machine used to enter every image through `COPY src/`,
+# `COPY alembic/` and `COPY pages/`. Kept LAST on purpose: a later `!` exception could otherwise re-include bytecode.
+# This excludes only what the host wrote; bytecode that pip generates while installing dependencies inside the image
+# is unaffected.
+**/__pycache__
+**/*.pyc
+**/*.pyo

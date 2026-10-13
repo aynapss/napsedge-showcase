@@ -1,0 +1,152 @@
+# Phase 9A -- controlled single-host containerized internal rehearsal.
+#
+# `docker compose up` starts ONLY `api` and `streamlit`. Discord never
+# starts without the explicit `discord` profile
+# (`docker compose --profile discord up`), and the optional local
+# PostgreSQL rehearsal service never starts without the explicit
+# `local-db` profile (`docker compose --profile local-db up`).
+#
+# Every host port binding below is loopback-only (`127.0.0.1:<port>`).
+# This is a network-reachability boundary, NOT authentication -- it
+# only prevents reachability from outside this single host. It does not
+# satisfy Phase 9C's own Streamlit access-control requirement
+# (docs/phase9_deployment_hardening_readiness.md §6), which remains open.
+#
+# NOT present anywhere in this file, by explicit Phase 9A scope: the
+# Stripe webhook, port 8787, a public reverse proxy, TLS termination,
+# Redis, or a production PostgreSQL service.
+
+services:
+  api:
+    build:
+      context: .
+      target: api
+    image: napsedge-api:phase9a
+    ports:
+      - "127.0.0.1:8000:8000"
+    environment:
+      NAPSEDGE_DATABASE_URL: ${NAPSEDGE_DATABASE_URL:-}
+      NAPSEDGE_DATABASE_ECHO: ${NAPSEDGE_DATABASE_ECHO:-}
+      NAPSEDGE_DB_POOL_SIZE: ${NAPSEDGE_DB_POOL_SIZE:-}
+      NAPSEDGE_DB_MAX_OVERFLOW: ${NAPSEDGE_DB_MAX_OVERFLOW:-}
+      NAPSEDGE_DB_POOL_TIMEOUT_SECONDS: ${NAPSEDGE_DB_POOL_TIMEOUT_SECONDS:-}
+      NAPSEDGE_API_KEY_HASHES_JSON: ${NAPSEDGE_API_KEY_HASHES_JSON:-}
+      NAPSEDGE_RATE_LIMIT_REQUESTS: ${NAPSEDGE_RATE_LIMIT_REQUESTS:-}
+      NAPSEDGE_RATE_LIMIT_WINDOW_SECONDS: ${NAPSEDGE_RATE_LIMIT_WINDOW_SECONDS:-}
+      NAPSEDGE_NET_RANKINGS_SEASON: ${NAPSEDGE_NET_RANKINGS_SEASON:-}
+      NAPSEDGE_NET_RANKINGS_CACHE_PATH: ${NAPSEDGE_NET_RANKINGS_CACHE_PATH:-}
+      NAPSEDGE_LOG_LEVEL: ${NAPSEDGE_LOG_LEVEL:-}
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/v1/health', timeout=3)"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    networks:
+      - napsedge-internal
+
+  streamlit:
+    build:
+      context: .
+      target: streamlit
+    image: napsedge-streamlit:phase9a
+    ports:
+      - "127.0.0.1:8501:8501"
+    environment:
+      NAPSEDGE_DATABASE_URL: ${NAPSEDGE_DATABASE_URL:-}
+      NAPSEDGE_DATABASE_ECHO: ${NAPSEDGE_DATABASE_ECHO:-}
+      NAPSEDGE_DB_POOL_SIZE: ${NAPSEDGE_DB_POOL_SIZE:-}
+      NAPSEDGE_DB_MAX_OVERFLOW: ${NAPSEDGE_DB_MAX_OVERFLOW:-}
+      NAPSEDGE_DB_POOL_TIMEOUT_SECONDS: ${NAPSEDGE_DB_POOL_TIMEOUT_SECONDS:-}
+      NAPSEDGE_NET_RANKINGS_SEASON: ${NAPSEDGE_NET_RANKINGS_SEASON:-}
+      NAPSEDGE_NET_RANKINGS_CACHE_PATH: ${NAPSEDGE_NET_RANKINGS_CACHE_PATH:-}
+      NAPSEDGE_LOG_LEVEL: ${NAPSEDGE_LOG_LEVEL:-}
+      # Optional, streamlit-only pass-through (no hostname is committed).
+      # Streamlit rejects a websocket whose Origin is not localhost with a
+      # 403 unless that origin is allowed here -- required when the app is
+      # reached through a tunnel/reverse proxy under a public hostname. An
+      # empty value behaves exactly like unset (verified). Set it to exactly
+      # ONE origin, e.g. https://<host>; multiple values through this
+      # variable were observed to be unreliable. See .env.example and
+      # docs/phase9_deployment_hardening_readiness.md (private-ingress
+      # rehearsal). This is an origin allowlist, not authentication.
+      STREAMLIT_SERVER_CORS_ALLOWED_ORIGINS: ${STREAMLIT_SERVER_CORS_ALLOWED_ORIGINS:-}
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8501/_stcore/health', timeout=3)"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    networks:
+      - napsedge-internal
+
+  discord:
+    build:
+      context: .
+      target: discord
+    image: napsedge-discord:phase9a
+    profiles: ["discord"]
+    # No `ports:` -- outbound-only process, never a listener.
+    environment:
+      DISCORD_BOT_TOKEN: ${DISCORD_BOT_TOKEN:-}
+      DISCORD_ADMIN_USER_IDS: ${DISCORD_ADMIN_USER_IDS:-}
+      NAPSEDGE_DATABASE_URL: ${NAPSEDGE_DATABASE_URL:-}
+      NAPSEDGE_DB_POOL_SIZE: ${NAPSEDGE_DB_POOL_SIZE:-}
+      NAPSEDGE_DB_MAX_OVERFLOW: ${NAPSEDGE_DB_MAX_OVERFLOW:-}
+      NAPSEDGE_DB_POOL_TIMEOUT_SECONDS: ${NAPSEDGE_DB_POOL_TIMEOUT_SECONDS:-}
+      NAPSEDGE_NET_RANKINGS_SEASON: ${NAPSEDGE_NET_RANKINGS_SEASON:-}
+      NAPSEDGE_NET_RANKINGS_CACHE_PATH: ${NAPSEDGE_NET_RANKINGS_CACHE_PATH:-}
+      NAPSEDGE_LOG_LEVEL: ${NAPSEDGE_LOG_LEVEL:-}
+      # Deliberately absent: NAPSEDGE_API_KEY_HASHES_JSON,
+      # NAPSEDGE_RATE_LIMIT_REQUESTS/_WINDOW_SECONDS -- the Discord bot
+      # never calls the HTTP API and has no use for either. Deliberately
+      # absent: STRIPE_*/ODDS_API_KEY -- belong to explicitly excluded
+      # processes, never passed to this service.
+    networks:
+      - napsedge-internal
+
+  local-db:
+    image: postgres:16-alpine
+    profiles: ["local-db"]
+    # NOT publicly exposed -- no `ports:` mapping to the host at all.
+    # Reachable only from other services on the private
+    # `napsedge-internal` network, by design, since this is a local/
+    # internal rehearsal database only, never a production instance.
+    # Explicitly non-production: no backup, TLS, least-privilege role
+    # separation, or rotation is provided or claimed by this service.
+    environment:
+      POSTGRES_DB: napsedge_local
+      POSTGRES_USER: napsedge_local
+      # A Compose-level `${VAR:?error}` hard requirement was tried here
+      # and rejected: Compose interpolates every service's environment
+      # at config-resolution time regardless of which profile is active,
+      # so a required-with-no-default variable on this profile-gated
+      # service would break plain `docker compose up` entirely (even
+      # when local-db is never requested) -- confirmed by an actual
+      # `docker compose up` failing with "required variable ... is
+      # missing a value" during Phase 9A's own container validation.
+      # The empty default below is intentionally never a usable
+      # credential: the official postgres image itself refuses to start
+      # with an empty POSTGRES_PASSWORD (and no POSTGRES_HOST_AUTH_METHOD
+      # override is set here), so an operator who forgets to set
+      # NAPSEDGE_LOCAL_DB_PASSWORD still cannot accidentally run this
+      # profile with a weak/blank credential -- the failure simply moves
+      # from Compose's own config step to the Postgres container's own
+      # startup, with an equally clear error.
+      POSTGRES_PASSWORD: ${NAPSEDGE_LOCAL_DB_PASSWORD:-}
+    volumes:
+      - napsedge-local-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U napsedge_local -d napsedge_local"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - napsedge-internal
+
+networks:
+  napsedge-internal:
+    driver: bridge
+
+volumes:
+  napsedge-local-db-data:

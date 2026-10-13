@@ -1,0 +1,9 @@
+# Phase 9E-3 (readiness section 10 "log retention", decision 8: journald): PREPARED, NOT INSTALLED -- install as
+# /etc/systemd/journald.conf.d/napsedge.conf, then `systemctl restart systemd-journald`. Docker's journald log driver
+# (daemon.json: {"log-driver": "journald"}) sends the containers' JSON lines here too. Values are a proposal for approval:
+# keep at most 1 GiB on disk and nothing older than 30 days (whichever limit is reached first).
+[Journal]
+Storage=persistent
+SystemMaxUse=1G
+MaxRetentionSec=30day
+Compress=yes

@@ -1,0 +1,13 @@
+# Phase 9B-8B: one backup cycle daily at 03:30 UTC. INACTIVE until deployment (do not enable before the runbook's activation).
+# Persistent=true: a run missed while the host was off happens ONCE at the next boot (not once per missed day).
+[Unit]
+Description=Daily NapsEdge backup cycle (Phase 9B-8B)
+
+[Timer]
+OnCalendar=*-*-* 03:30:00 UTC
+Persistent=true
+RandomizedDelaySec=10min
+Unit=napsedge-backup.service
+
+[Install]
+WantedBy=timers.target

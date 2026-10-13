@@ -1,0 +1,16 @@
+# Phase 9B-8C: PREPARED, NOT INSTALLED -- the attention hook for a PRIVATE Discord channel, if that channel is chosen.
+# To activate (only after Anthony authorizes the recipient AND a test message):
+#   1. Discord: a private, operator-only channel -> Edit Channel -> Integrations -> Webhooks -> New Webhook -> Copy Webhook URL.
+#   2. Store it as an encrypted credential, pasted on stdin (never in a file or argument):
+#        systemd-creds encrypt --name=discord-webhook - /etc/credstore.encrypted/napsedge-backup-discord-webhook
+#   3. install -m 0755 deploy/backup/notify-webhook.sh /usr/local/lib/napsedge-backup/notify-webhook.sh
+#   4. Install this file as /etc/systemd/system/napsedge-backup-notify@.service (replacing the journal-only hook); systemctl daemon-reload.
+#   5. Only when authorized: systemctl start napsedge-backup-notify@test.service  (sends ONE test message).
+[Unit]
+Description=NapsEdge backup attention hook for %i (journal + Discord webhook)
+
+[Service]
+Type=oneshot
+LoadCredentialEncrypted=discord-webhook:/etc/credstore.encrypted/napsedge-backup-discord-webhook
+ExecStart=/usr/bin/logger -t napsedge-backup-notify "ATTENTION: %i did not succeed; see journalctl -u %i"
+ExecStart=/usr/local/lib/napsedge-backup/notify-webhook.sh discord %i

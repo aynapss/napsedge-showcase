@@ -1,0 +1,20 @@
+# Phase 9B-8C: PREPARED, NOT INSTALLED -- the external dead-man's switch (selected: Discord AND a dead-man's switch). It also catches
+# what no local hook can: the host being down or the timer never firing. The service alerts when the heartbeat STOPS.
+# The heartbeat means "a verified off-site copy was stored by THIS run", not "the cycle exited 0" (exit 0 also covers off-site
+# disabled) and not "some recent run succeeded":
+#   - ExecStartPre records the byte size of the cycle log BEFORE this run (in this unit's private RuntimeDirectory, which systemd
+#     empties at every stop, so no earlier run's offset can survive);
+#   - after the run, verified-offsite-gate.py (read-only, no network) accepts ONLY the single record appended since that offset, and
+#     only if it is stored_verified with a read-back digest and completion record. A failed, overlapped, uncertain, refused or
+#     off-site-disabled cycle, a run that wrote no record, or a missing offset sends NOTHING.
+# To activate (only after Anthony authorizes the service, the check AND one test):
+#   1. Create a check: period 1 day, grace 6 hours; copy its ping URL (a secret).
+#   2. systemd-creds encrypt --name=deadman-ping-url - /etc/credstore.encrypted/napsedge-backup-deadman-ping-url   (pasted on stdin)
+#   3. install -m 0755 deploy/backup/notify-webhook.sh /usr/local/lib/napsedge-backup/notify-webhook.sh
+#      install -m 0644 deploy/backup/verified-offsite-gate.py /usr/local/lib/napsedge-backup/verified-offsite-gate.py
+#   4. Install this file as /etc/systemd/system/napsedge-backup.service.d/deadman.conf; systemctl daemon-reload.
+[Service]
+LoadCredentialEncrypted=deadman-ping-url:/etc/credstore.encrypted/napsedge-backup-deadman-ping-url
+# "-": a failure here never blocks the backup; it only leaves no offset, so the gate refuses and the heartbeat is withheld.
+ExecStartPre=-/bin/sh -c 'rm -f /run/napsedge-backup/cycles-offset; /usr/bin/docker run --rm --read-only --network none --user 10001:10001 -v napsedge-backup-state:/s:ro --entrypoint sh napsedge-backup:${NAPSEDGE_BACKUP_IMAGE_TAG} -c "if [ -e /s/cycles.jsonl ]; then wc -c < /s/cycles.jsonl; else echo 0; fi" > /run/napsedge-backup/cycles-offset.tmp && mv /run/napsedge-backup/cycles-offset.tmp /run/napsedge-backup/cycles-offset'
+ExecStopPost=/bin/sh -c 'test "$EXIT_STATUS" = 0 || exit 0; offset=$(cat /run/napsedge-backup/cycles-offset 2>/dev/null); /usr/bin/docker run --rm --read-only --network none --user 10001:10001 -v napsedge-backup-state:/s:ro -v /usr/local/lib/napsedge-backup/verified-offsite-gate.py:/g.py:ro --entrypoint python napsedge-backup:${NAPSEDGE_BACKUP_IMAGE_TAG} /g.py /s/cycles.jsonl --offset "$offset" || exit 0; exec /usr/local/lib/napsedge-backup/notify-webhook.sh deadman'

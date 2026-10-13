@@ -1,0 +1,45 @@
+# Phase 8A Pass 5R: pinned after a dependency-isolation matrix (Cells A-D,
+# see docs/phase8_dependency_stabilization.md) proved these two specific
+# versions -- and only these two, independent of every other unpinned
+# package -- are necessary and sufficient to clear 70 non-live test
+# failures caused by an unconstrained fresh install resolving streamlit
+# 1.64.0 and pandas 3.0.6. Not a defensive pin; an evidence-backed one.
+streamlit==1.57.0
+pandas==2.3.3
+numpy
+requests
+beautifulsoup4
+lxml
+openpyxl
+pyarrow
+Pillow
+playwright
+selenium
+plotly
+kaleido
+discord.py
+stripe
+flask
+jupyter
+nbconvert
+
+# Phase 5A: already load-bearing for the PostgreSQL persistence layer and
+# migration chain (src/db/, alembic/) -- declared here for the first time;
+# no version change from what was already installed and in use.
+sqlalchemy==2.0.52
+alembic==1.19.1
+
+# Phase 6B: API foundation (docs/phase6_service_api_design.md Slices 0-2).
+fastapi==0.141.1
+pydantic==2.13.5
+uvicorn==0.46.0
+
+# Phase 7 Slice 0B: a real (non-default-SQLite) deployment sets
+# NAPSEDGE_DATABASE_URL to a PostgreSQL DSN (src/db/config.py), which requires
+# this driver at runtime -- previously declared only in requirements-dev.txt
+# and mislabeled "never a production dependency" there; corrected here.
+psycopg[binary]
+
+# Phase 9D: the shared rate-limit backend client (redis-py, Redis Inc., MIT, no dependencies);
+# used only when NAPSEDGE_RATE_LIMIT_BACKEND=redis (src/auth/rate_limit_redis.py).
+redis

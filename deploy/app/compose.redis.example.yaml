@@ -1,0 +1,23 @@
+# Phase 9D (decisions 2-3, approved 2026-10-09): PREPARED, NOT ACTIVE -- the shared rate-limit backend, needed only once the API
+# runs MORE THAN ONE worker process (today: one uvicorn worker, so the in-memory limiter is exact). Use with the base file:
+#   docker compose -f compose.yaml -f deploy/app/compose.redis.example.yaml up -d
+# Redis is reachable ONLY on the compose network (no host port), keeps no data on disk (counters are disposable), and the API
+# fails CLOSED (sanitized 503) if Redis is down. No proxy header is trusted; the key is the authenticated client_id.
+services:
+  ratelimit-redis:
+    image: redis:7-alpine
+    command: ["redis-server", "--save", "", "--appendonly", "no", "--maxmemory", "64mb", "--maxmemory-policy", "volatile-ttl"]
+    read_only: true
+    tmpfs: ["/data"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+  api:
+    depends_on:
+      ratelimit-redis:
+        condition: service_healthy
+    environment:
+      NAPSEDGE_RATE_LIMIT_BACKEND: redis
+      NAPSEDGE_RATE_LIMIT_REDIS_URL: redis://ratelimit-redis:6379/0

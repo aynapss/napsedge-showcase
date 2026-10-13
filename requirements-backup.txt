@@ -1,0 +1,8 @@
+# Phase 9B-8B: Python dependencies of the BACKUP image ONLY (the api/streamlit/discord images never install these).
+# Installed with -c constraints-release-py313.txt; resolved 2026-10-08 against that file (only these four are new).
+# boto3/botocore/s3transfer: the S3-compatible client for the off-site store (Backblaze B2's S3 API in production).
+# jmespath: botocore's required dependency.
+boto3==1.43.110
+botocore==1.43.110
+s3transfer==0.19.2
+jmespath==1.1.0

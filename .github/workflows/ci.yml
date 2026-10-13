@@ -1,0 +1,52 @@
+# Public showcase CI: the pinned install, the self-contained test suite and a dependency vulnerability scan.
+# The private repository additionally runs the PostgreSQL/Redis suites, migration drift checks and image builds.
+name: ci
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PYTHONDONTWRITEBYTECODE: "1"
+
+jobs:
+  tests:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: Install the pinned dependencies (runtime + dev + backup client)
+        run: |
+          python -m pip install --disable-pip-version-check -c constraints-release-py313.txt -r requirements-dev.txt
+          python -m pip install --disable-pip-version-check -c constraints-release-py313.txt -r requirements-backup.txt
+      - name: Default test suite (live, postgres and redis markers deselected by pytest.ini)
+        run: python -m pytest -q -ra -p no:cacheprovider
+
+  audit:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: Install the pinned runtime and backup dependencies, then pip-audit
+        run: |
+          python -m pip install --disable-pip-version-check -c constraints-release-py313.txt -r requirements.txt
+          python -m pip install --disable-pip-version-check -c constraints-release-py313.txt -r requirements-backup.txt
+          python -m pip install --disable-pip-version-check pip-audit==2.9.0
+          pip-audit --progress-spinner off --skip-editable

@@ -1,0 +1,60 @@
+# Phase 9E-3 (readiness section 10, approved alerting decision 8): PREPARED, NOT INSTALLED -- three small operator checks for the
+# application on the server, each a oneshot service + timer. A failing check fires OnFailure= into the existing attention hook
+# (napsedge-backup-notify@.service: journal-only today; the Discord drop-in once Anthony activates it), so ONE alert path covers
+# backups and the app. Split this file into the six unit files below when installing (one [Unit] block per file).
+#
+# ---- /etc/systemd/system/napsedge-ready-check.service ----
+# [Unit]
+# Description=NapsEdge API readiness check (/v1/ready)
+# OnFailure=napsedge-backup-notify@%n.service
+# [Service]
+# Type=oneshot
+# TimeoutStartSec=30
+# # the API port is bound to 127.0.0.1 only (compose.yaml); /v1/ready also checks the database
+# ExecStart=/usr/bin/curl -fsS --max-time 10 -o /dev/null http://127.0.0.1:8000/v1/ready
+#
+# ---- /etc/systemd/system/napsedge-ready-check.timer ----
+# [Unit]
+# Description=Every 5 minutes: NapsEdge API readiness
+# [Timer]
+# OnBootSec=5min
+# OnUnitActiveSec=5min
+# [Install]
+# WantedBy=timers.target
+#
+# ---- /etc/systemd/system/napsedge-discord-check.service ----
+# [Unit]
+# Description=NapsEdge Discord bot process check (is the compose service running)
+# OnFailure=napsedge-backup-notify@%n.service
+# [Service]
+# Type=oneshot
+# TimeoutStartSec=30
+# # compose labels every container with its service name; no restart policy is set, so a crashed bot stays visible here
+# ExecStart=/bin/sh -c 'test -n "$(/usr/bin/docker ps -q --filter label=com.docker.compose.service=discord --filter status=running)"'
+#
+# ---- /etc/systemd/system/napsedge-discord-check.timer ----
+# [Unit]
+# Description=Every 5 minutes: NapsEdge Discord bot process
+# [Timer]
+# OnBootSec=5min
+# OnUnitActiveSec=5min
+# [Install]
+# WantedBy=timers.target
+#
+# ---- /etc/systemd/system/napsedge-data-freshness.service ----
+# [Unit]
+# Description=NapsEdge data freshness (exit 10 = a cache older than NAPSEDGE_DATA_MAX_AGE_HOURS)
+# OnFailure=napsedge-backup-notify@%n.service
+# [Service]
+# Type=oneshot
+# TimeoutStartSec=2min
+# ExecStart=/usr/bin/docker compose -f /opt/napsedge/compose.yaml run --rm --no-deps api python -m src.deployment.entrypoints data-freshness
+#
+# ---- /etc/systemd/system/napsedge-data-freshness.timer ----
+# [Unit]
+# Description=Every 6 hours: NapsEdge data freshness
+# [Timer]
+# OnCalendar=*-*-* 00/6:15:00 UTC
+# Persistent=true
+# [Install]
+# WantedBy=timers.target
