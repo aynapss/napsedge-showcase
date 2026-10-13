@@ -11,6 +11,8 @@ logs/
 cache/
 sr_cache_html/
 TeamDump/
+# ...except the public demo's synthetic injury files (fictional teams).
+!demo/TeamDump/
 covers_slug_cache.json
 
 # Bet tracker outputs only (not logos)

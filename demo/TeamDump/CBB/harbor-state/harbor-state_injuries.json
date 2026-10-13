@@ -1,0 +1,12 @@
+[
+  {
+    "player": "Demo Player A",
+    "status": "Out",
+    "detail": "ankle (synthetic demo record)"
+  },
+  {
+    "player": "Demo Player B",
+    "status": "Questionable",
+    "detail": "illness (synthetic demo record)"
+  }
+]
