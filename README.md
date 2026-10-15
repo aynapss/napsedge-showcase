@@ -26,6 +26,16 @@ NapsEdge collects NCAA men's basketball data, models matchups and serves the res
 - **Python 3.13**, FastAPI, Streamlit, discord.py, SQLAlchemy 2 and Alembic, PostgreSQL 16, Redis (optional), Docker and Compose, systemd, GitHub Actions.
 - One container image per process from a pinned base; every dependency is pinned exactly in [`constraints-release-py313.txt`](constraints-release-py313.txt).
 
+## Methodology: player, team and coaching evaluation
+
+NapsEdge rates every player and team in Division I (and, privately, Divisions II and III and junior college) and draws them as 8-bit trading cards for the web and Discord. **[docs/methodology.md](docs/methodology.md)** explains how: the eight-skill player rating measured against each division, the Division I projection for players moving up, the team rating (roster, results and team play), System DNA that follows a coach from program to program, a readiness verdict with its reasons, and the daily automation behind it. The code that computes these stays private.
+
+| Player card | Team card |
+|---|---|
+| ![Player card](docs/screenshots/cards/player-card.png) | ![Team card](docs/screenshots/cards/team-card.png) |
+
+*Fictional players and teams, drawn by the real renderer. More in the [methodology](docs/methodology.md).*
+
 ## Engineering highlights
 
 | Area | What it does | Where |
@@ -80,6 +90,7 @@ These stay in the private repository:
 - the research notebooks;
 - matchup feature engineering, the projection model and market-edge evaluation ([`src/features/matchup_features.py`](src/features/matchup_features.py) keeps only the descriptive comparison of user-supplied values; `build_matchup_features` raises `NotImplementedError`);
 - player ratings, simulation, staking, calibration and back-testing;
+- the card renderer, the team rating, the coaching-system and readiness models, and the crawlers behind them (their methodology is in [docs/methodology.md](docs/methodology.md));
 - the LLM research agents and the legacy Discord commands;
 - raw data, caches and team logos.
 
