@@ -161,7 +161,7 @@ READY NOW (60+), DEVELOPING (45-59) or PROJECT (under 45). Minutes from a previo
 
 ## Matchups and conferences
 
-**Matchup card.** Both team ratings, a tale of the tape across the eight team attributes, both coaching systems, and a *style clash* in plain words drawn from the two systems' DNA: a tempo battle when one team plays much faster, a turnover edge when one team's pressure meets the other's loose handle, second-chance edges, rim attacks into shot blockers, three-point volume and bench depth.
+**Matchup card.** Both team ratings, a tale of the tape across the eight team attributes, both coaching systems, and a *style clash* in plain words drawn from the two systems' DNA: a tempo battle when one team plays much faster, a turnover edge when one team's pressure meets the other's loose handle, second-chance edges, rim attacks into shot blockers, three-point volume and bench depth. The style clash also names the widest gaps between the two teams' attributes. Each team's four players to watch carry the one skill this matchup favours: of his three best attributes, the one the opponent is least equipped to stop, judged against the opponent's team attribute that tests it (its shot blocking for a scorer, its rebounding for a rebounder, its ball security for a pickpocket). It is tagged **FLOURISH** when the opponent is weak there or the skill is a star skill, **TOUGH TEST** when the opponent is strong there, and **KEY SKILL** otherwise.
 
 **Conference power card.** Teams ranked by team OVR with their tiers and styles, and the conference's best players.
 
