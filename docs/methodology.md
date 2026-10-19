@@ -14,12 +14,15 @@ The sample cards below use **fictional players, teams and coaches**. They are dr
 2. [Collecting the data](#collecting-the-data)
 3. [The player rating (OVR)](#the-player-rating-ovr)
 4. [Players below Division I](#players-below-division-i)
-5. [The team rating](#the-team-rating)
-6. [Coaching systems: System DNA](#coaching-systems-system-dna)
-7. [Readiness: how a player fits a system](#readiness-how-a-player-fits-a-system)
-8. [Matchups and conferences](#matchups-and-conferences)
-9. [Running it every day](#running-it-every-day)
-10. [How the numbers are checked](#how-the-numbers-are-checked)
+5. [Upside: a layered, tested profile](#upside-a-layered-tested-profile)
+6. [The new season: exhibitions, then current play first](#the-new-season-exhibitions-then-current-play-first)
+7. [The team rating](#the-team-rating)
+8. [Coaching systems: System DNA](#coaching-systems-system-dna)
+9. [Readiness: how a player fits a system](#readiness-how-a-player-fits-a-system)
+10. [Matchups and conferences](#matchups-and-conferences)
+11. [Running it every day](#running-it-every-day)
+12. [How the numbers are checked](#how-the-numbers-are-checked)
+13. [Next: incoming players](#next-incoming-players)
 
 ## The pipeline at a glance
 
@@ -63,6 +66,12 @@ Every crawler identifies itself honestly, reads and obeys each site's robots.txt
 
 **Context adjustments.** The skills combine into one OVR with role and consistency adjustments: minutes and games played (a small sample is held back), a recency factor from the last 5 and 10 games, and, for Division I, conference strength. Size counts for the position: height is compared with the Division I average for guards, forwards and centers, so a 6-6 guard is big and a 6-8 center is undersized.
 
+**Graded against his league and position.** Each attribute is shown as a percentile among players of the same league and position group (a guard against guards), on five equal bands: POOR, LOW, AVG, GOOD, GREAT, ELITE.
+
+**Every number says what it is.** Counting skills are shown per 40 minutes with the per-game number and minutes under them ("22.1 PTS/40 · 17.8 PPG · 32 MIN"), so a high scoring grade in limited minutes is explained rather than doubted; rates name their stat ("61% TS", "14% TOV").
+
+**Staying on the floor.** Fouls per 40 minutes, against his league and position, fewer grading higher. It is its own row on the card and a small, capped adjustment to the overall: a player who stays out of foul trouble is worth more minutes.
+
 **Tiers.** BENCH (under 60), ROTATION (60-69), STARTER (70-79), SUPERSTAR (80-95), LEGENDARY (96+).
 
 **The scouting report is rules on his own numbers, not a language model.** Strengths and weaknesses cite the player's level and his own per-game numbers; the role title ("Scoring Guard", "Rim Protector") and the systems he suits follow from his best skills and position; the development plan names the next level for his weakest key skills, with polishing rather than rebuilding for a player in his final season.
@@ -72,6 +81,34 @@ Every crawler identifies itself honestly, reads and obeys each site's robots.txt
 A Division II, Division III or junior-college player is first rated against his own division. For a player moving up, the card also shows a **Division I projection**: his own-division OVR mapped onto the Division I scale with a curve calibrated on players who actually made the move, then adjusted for skills that transfer well and for pedigree (recruiting stars, All-America and conference honors). The card says which number it shows ("NCAA DII RATING" or "D-I PROJECTION") and where the rating came from.
 
 Expected growth for a returning player comes from a study of 631 Division II and III players who stayed at the same school between two seasons: growth by starting level, class year, upside and role. A player in his final season shows no further growth.
+
+## Upside: a layered, tested profile
+
+An upside label has to be defensible from the player's own numbers. The first version, a single-season index, was tested against what players actually did the next season and failed: players it called "elite upside" grew the *least*. It was replaced by a profile of five layers, each ranked within his league and position:
+
+| Layer | What it measures |
+|---|---|
+| Runway | Seasons of eligibility left |
+| Trajectory | His rating change last season |
+| Headroom | Efficient production in a small role (true shooting and points per 40, weighted by how little he plays; a minimum sample applies) |
+| Tools | Size for his position, steals, blocks and offensive rebounds |
+| Pedigree | National recruiting rank |
+
+The layers' weights were **fitted to real growth**: every rated Division I player across three seasons, about 5,800 player-season pairs, predicting his next-season rating change. Tested on teams held out of the fit:
+
+| Predicting next-season rating change | Correlation |
+|---|---|
+| Layered profile | **0.43** |
+| Previous upside badge | 0.07 |
+| Current rating alone | 0.40 |
+
+Most of the predictability is regression toward the middle (lower-rated players rise, the highest fall back), so labels rank only the growth the layers add beyond what a player's current rating predicts. Three labels by share of each league and position: **Star Ceiling**, **High Ceiling**, **Stock Rising**; a player in his final season or already rated 90+ gets none. The card names the two stats that earned the label, e.g. "61% TS · 14 MPG · RSCI #38". Individual growth stays noisy (a typical miss is several rating points), and the card says what the label rests on rather than overstating it.
+
+## The new season: exhibitions, then current play first
+
+**Exhibitions** are read from each school's own box scores (no statistics site carries them), kept once and never fetched again. They are rated like a season at the same per-game rates and nudge the preseason rating by a small weight that grows with minutes, counted at a discount because starters rest and opponents vary. One exhibition moves a player a few percent of the way at most.
+
+**Once real games start, this season leads.** A player's rating and every attribute blend this season with his history (his preseason card, else last season), and this season's share grows with his minutes: a regular starter is mostly this season by midseason. Exhibitions then stay only inside the preseason history, worth far less than regular-season and postseason games. A team's rating follows from its players.
 
 ## The team rating
 
@@ -106,6 +143,8 @@ A program's system is measured from its own season, not from a description of it
 
 Each trait is ranked among the teams of the same division and season and shown as a level (VERY LOW, LOW, AVG, HIGH, VERY HIGH) with a plain rank ("top 8%", "bottom 2%"). The strongest traits name an offensive and a defensive style (for example *Pace & Space*, *Motion / Ball Movement*, *Half-Court Grind*; *Turnover Pressure*, *Rim Protection*), and the most extreme give the team its tags ("UP-TEMPO", "RIM PROTECTORS").
 
+**Style is not re-labelled on a few games.** Early in a season a team keeps its established style (its coach's last season, or a new coach's from his previous program) until it has played enough games and its DNA has clearly moved; then the card says the style changed.
+
 **The system follows the coach.** Each season's head coach is recorded from the pages the crawlers already read. When a program hires a new coach, its card takes the System DNA from that coach's most recent season at his previous program (in that program's division) and says so, with his record there. A returning coach keeps his own team's system. A coach recorded by hand with a source (a named scheme, for instance) overrides what the statistics infer.
 
 ## Readiness: how a player fits a system
@@ -128,7 +167,9 @@ READY NOW (60+), DEVELOPING (45-59) or PROJECT (under 45). Minutes from a previo
 
 ## Running it every day
 
-Scheduled jobs on the server, each in its own hardened container (read-only filesystem, unprivileged user, no capabilities):
+One scheduled refresh covers every league in about 40 minutes. Sites never share a request budget, so two lanes run at once: Sports-Reference (one host, held to its published rate limit, which sets the floor) and the schools' own sites, read in parallel, one request at a time per site. Box scores already kept are never fetched again, a season that is not published yet is detected from a few pages and skipped, and the head-coach check runs in the offseason, when coaches change.
+
+The server version of the same jobs, each in its own hardened container (read-only filesystem, unprivileged user, no capabilities):
 
 | Job | When |
 |---|---|
@@ -147,3 +188,7 @@ Each card is saved twice, a full-resolution PNG for the web and a 256-colour cop
 - **Snapshot discipline.** Tests that pin values from real data say which data snapshot they come from. When a data refresh moves a value, the cause is investigated before any expected value changes, and a gap that turns out to be a real difference between two implementations is fixed at its source rather than hidden by a new tolerance.
 - **Layout checks.** Card sections are measured for clipped text and dead space before a design change is accepted.
 - **Every scraper and parser is tested on the real pages' markup**, including the failure paths: a page that does not exist, a site that refuses, a redirect to another host, a malformed address.
+
+## Next: incoming players
+
+Freshmen and international signees are projected from recruiting rankings until they play. The next step is a stats-based projection from grassroots and international play (Nike EYBL, FIBA youth events, Overtime Elite, the Next Generation Tournament), translated to each college level the same way lower-division ratings are: fitted on players seen at both levels, kept only if it beats recruiting rankings alone, and shown with its expected error. Several of these sources are licensed data; nothing is collected without the source's permission, and because most of these players are minors only published game statistics are used.
