@@ -102,7 +102,7 @@ The layers' weights were **fitted to real growth**: every rated Division I playe
 | Previous upside badge | 0.07 |
 | Current rating alone | 0.40 |
 
-Most of the predictability is regression toward the middle (lower-rated players rise, the highest fall back), so labels rank only the growth the layers add beyond what a player's current rating predicts. Three labels by share of each league and position: **Star Ceiling**, **High Ceiling**, **Stock Rising**; a player in his final season or already rated 90+ gets none. The card names the two stats that earned the label, e.g. "61% TS · 14 MPG · RSCI #38". Individual growth stays noisy (a typical miss is several rating points), and the card says what the label rests on rather than overstating it.
+Most of the predictability is regression toward the middle (lower-rated players rise, the highest fall back), so labels rank only the growth the layers add beyond what a player's current rating predicts. Three labels by share of each league and position: **Star Ceiling**, **High Ceiling**, **Stock Rising**; a player in his final season or already rated 90+ gets none. The card shows his national recruiting rank under the label when he has one (e.g. "RSCI #38"); the other layers count in the score without crowding the card. Individual growth stays noisy (a typical miss is several rating points), and the card says what the label rests on rather than overstating it.
 
 ## The new season: exhibitions, then current play first
 
