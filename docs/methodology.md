@@ -72,6 +72,8 @@ Every crawler identifies itself honestly, reads and obeys each site's robots.txt
 
 **Staying on the floor.** Fouls per 40 minutes, against his league and position, fewer grading higher. It is its own row on the card and a small, capped adjustment to the overall: a player who stays out of foul trouble is worth more minutes.
 
+**Skill badges come from the graded attributes.** A skill graded GREAT or better earns its badge (🎯 Shooter, 💰 Pickpocket, 🧹 Glass Cleaner and so on). 🧭 **Floor General** marks a great passer who also protects the ball, and 🧊 **Disciplined** a player who stays out of foul trouble while carrying real minutes. A badge is shown only when its skill is worth acknowledging: a skill badge whose skill grades POOR or LOW is dropped, so a low-volume shooter never wears a shooter badge.
+
 **Tiers.** BENCH (under 60), ROTATION (60-69), STARTER (70-79), SUPERSTAR (80-95), LEGENDARY (96+).
 
 **The scouting report is rules on his own numbers, not a language model.** Strengths and weaknesses cite the player's level and his own per-game numbers; the role title ("Scoring Guard", "Rim Protector") and the systems he suits follow from his best skills and position; the development plan names the next level for his weakest key skills, with polishing rather than rebuilding for a player in his final season.
